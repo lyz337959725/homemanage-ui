@@ -86,7 +86,7 @@
     <el-dialog
       title="新增流水"
       :visible.sync="addBillDialog"
-      width="30%"
+      width="35%"
       @close="closeAddBillFormDialog"
     >
       <el-form :model="addBillForm" ref="addBillForm" label-position="right" :rules="addBillRules">

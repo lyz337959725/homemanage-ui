@@ -48,8 +48,8 @@ export default {
                 this.$message.error(response.data.message);
               }
             })
-            .catch( () =>{
-              this.$message.error("响应失败");
+            .catch( (error) =>{
+              this.$message.error("响应失败" + error);
             });
         }else{
           return

@@ -23,7 +23,7 @@
     ></el-button>
 
     <!-- 增加用户弹框 -->
-    <el-dialog title="新增用户" :visible.sync="addFormDialog" width="30%" @close="closeAddFormDialog">
+    <el-dialog title="新增用户" :visible.sync="addFormDialog" width="35%" @close="closeAddFormDialog">
       <el-form :model="addForm" ref="addForm" :rules="addFormRules">
         <el-form-item label="用户名" label-width="15%" prop="name">
           <el-input v-model="addForm.name" autocomplete="off"></el-input>
