@@ -9,7 +9,7 @@
       show-icon
     ></el-alert>
     <el-form :inline="true" :model="queryForm" class="demo-form-inline">
-      <el-form-item>
+      <el-form-item  style="width:10%">
         <el-cascader
           clearable
           :props="typeListProps"
@@ -20,7 +20,7 @@
           @change="handleTypeChange"
         ></el-cascader>
       </el-form-item>
-      <el-form-item>
+      <el-form-item style="width:10%">
         <el-select  clearable v-model="queryForm.person" placeholder="所属人" size="small">
           <el-option v-for="item in personList" :label="item.name" :value="item.id" :key="item.id"></el-option>
         </el-select>
@@ -36,7 +36,7 @@
         <el-select
           v-model="queryForm.book"
           size="small"
-          @change="getBillListByBook"
+          @change="handleBookChange"
         >
           <el-option v-for="item in bookList" :label="item.name" :value="item.id" :key="item.id"></el-option>
         </el-select>
@@ -124,6 +124,7 @@
         <el-form-item label="所属人" label-width="20%">
           <el-select v-model="addBillForm.personId">
             <el-option
+              clearable
               v-for="item in personList"
               :label="item.name"
               :value="item.id"
@@ -173,7 +174,7 @@ export default {
         income: "false",
         typeId: "",
         spend: "",
-        spendDate: "",
+        spendDate: new Date(),
         content: "",
         personId: ""
       },
@@ -205,6 +206,10 @@ export default {
           }
         })
       );
+    if(localStorage.getItem("bookId")){
+      this.queryForm.book = parseInt(localStorage.getItem("bookId"))
+      this.getBillListByBook()
+    }
   },
   methods: {
     getBillListByBook() {
@@ -263,6 +268,10 @@ export default {
     },
     handleTypeChange(typeArr){
       this.queryForm.type = typeArr[typeArr.length - 1];
+    },
+    handleBookChange(bookId){
+      localStorage.setItem("bookId",bookId)
+      this.getBillListByBook();
     },
     showAddBillDialog(opt,id){
       if(opt === 'edit'){
