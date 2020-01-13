@@ -1,8 +1,15 @@
 <template>
   <el-container style="height:100%">
-    <el-aside width="200px">
-      <div class="title">HomeManager</div>
-      <el-menu class="el-menu-vertical-demo"  router>
+    <!-- <el-aside > -->
+      <el-menu
+        class="el-menu-vertical-demo"
+        router
+        @open="handleOpen"
+        @close="handleClose"
+        :collapse="isCollapse"
+      >
+      
+      <div :class="titleClass" v-text="titleContent"></div>
         <el-menu-item index="/user">
           <i class="el-icon-s-custom"></i>
           <span slot="title">用户管理</span>
@@ -12,23 +19,27 @@
             <i class="el-icon-s-order"></i>
             <span>财务管理</span>
           </template>
-            <el-menu-item index="/finance/bill">流水管理</el-menu-item>
-            <el-menu-item index="/finance/book">账簿管理</el-menu-item>
-            <el-menu-item index="/finance/type">类别管理</el-menu-item>
-            <el-menu-item index="/finance/person">所属人管理</el-menu-item>
+          <el-menu-item index="/finance/bill">流水管理</el-menu-item>
+          <el-menu-item index="/finance/book">账簿管理</el-menu-item>
+          <el-menu-item index="/finance/type">类别管理</el-menu-item>
+          <el-menu-item index="/finance/person">所属人管理</el-menu-item>
         </el-submenu>
       </el-menu>
-    </el-aside>
+    <!-- </el-aside> -->
     <el-container>
       <!-- 头部 -->
       <el-header>
-        <el-button icon="el-icon-s-fold" circle></el-button>
+        <i :class="tipClass" @click="controlMenu"></i>
         <el-breadcrumb separator="/">
           <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-          <el-breadcrumb-item v-for="item in this.$router.history.current.meta.title" :key="item">{{item}}</el-breadcrumb-item>
+          <el-breadcrumb-item
+            v-for="item in this.$router.history.current.meta.title"
+            :key="item"
+          >{{item}}</el-breadcrumb-item>
         </el-breadcrumb>
         <el-dropdown trigger="click">
-          <span class="el-dropdown-link">{{this.$store.state.userName}}
+          <span class="el-dropdown-link">
+            {{this.$store.state.userName}}
             <i class="el-icon-arrow-down el-icon--right"></i>
           </span>
           <el-dropdown-menu slot="dropdown">
@@ -47,23 +58,29 @@
 <script>
 export default {
   data() {
-    return {};
+    return {
+      titleClass:"titleOpen",
+      titleContent:"HomeManager",
+      tipClass:"el-icon-s-fold tip",
+      isCollapse:false
+    };
   },
   beforeCreate() {
     const token = localStorage.getItem("token");
     if (!token) {
       this.$router.push({ name: "login" });
-    }else{
-      this.$axios.get("/sys/profile")
+    } else {
+      this.$axios
+        .get("/sys/profile")
         .then(response => {
-          if(response.data != ""){
-            this.$store.commit('saveUserName',response.data)
-          }else{
-            this.logout()
+          if (response.data != "") {
+            this.$store.commit("saveUserName", response.data);
+          } else {
+            this.logout();
           }
         })
         .catch(() => {
-          this.logout()
+          this.logout();
         });
     }
   },
@@ -71,6 +88,18 @@ export default {
     logout() {
       localStorage.clear();
       this.$router.push({ name: "login" });
+    },
+    handleOpen(key, keyPath) {
+      window.console.log(key, keyPath);
+    },
+    handleClose(key, keyPath) {
+      window.console.log(key, keyPath);
+    },
+    controlMenu(){
+      this.isCollapse = !this.isCollapse
+      this.titleClass = this.titleClass == "titleOpen" ? "titleClose" : "titleOpen"
+      this.tipClass = this.tipClass == "el-icon-s-fold tip" ? "el-icon-s-unfold tip" : "el-icon-s-fold tip"
+      this.titleContent = this.titleContent == "HomeManager" ? "HM" : "HomeManager"
     }
   }
 };
@@ -97,14 +126,30 @@ export default {
     line-height: 60px;
   }
 
-  .el-button {
+  .tip {
     float: left;
-    margin-top: 10px;
+    font-size: 30px;
     margin-right: 10px;
+    line-height: 60px;
+    color: @mainDark;
   }
 }
-.el-aside {
-  .title {
+
+.el-menu {
+  height: calc(100vh - 100px);
+  
+  
+  .titleOpen {
+    width: 200px;
+    height: 100px;
+    line-height: 100px;
+    text-align: center;
+    background-color: @main;
+    color: #fff;
+    font-size: 20px;
+  }
+  .titleClose {
+    width: 64px;
     height: 100px;
     line-height: 100px;
     text-align: center;
@@ -113,12 +158,10 @@ export default {
     font-size: 20px;
   }
 
-  .el-menu {
-    height: calc(100vh - 100px);
-  }
 }
 
 .el-main {
   background-color: #eee;
+
 }
 </style>
