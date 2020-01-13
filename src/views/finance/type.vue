@@ -9,6 +9,7 @@
       :tree-props="{children: 'children'}"
     >
       <el-table-column prop="name" label="类别名称"></el-table-column>
+      <el-table-column prop="sort" label="显示顺序"></el-table-column>
       <el-table-column prop="creator" label="创建人"></el-table-column>
       <el-table-column prop="createDate" label="创建时间"></el-table-column>
       <el-table-column prop="updateDate" label="修改时间"></el-table-column>
@@ -16,13 +17,44 @@
         <template slot-scope="type">
           <el-button-group>
             <el-button type="success" size="small" icon="el-icon-plus" @click="openAddDialog(type.row.id)"></el-button>
-            <el-button type="warning" size="small" icon="el-icon-edit"  @click="editType(type.row)"></el-button>
+            <el-button type="warning" size="small" icon="el-icon-edit"  @click="openAddDialog(type.row.id,type.row)"></el-button>
             <el-button type="danger" size="small" icon="el-icon-delete" @click="deleteType(type.row)"></el-button>
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
     <el-button class="addType" type="success" icon="el-icon-plus" circle @click="openAddDialog(-1)"></el-button>
+    
+    
+    <!-- 增加类型弹框 -->
+    <el-dialog
+      :title="addTypeDialogTitle"
+      :visible.sync="addTypeDialog"
+      width="35%"
+      @close="closeAddTypeFormDialog"
+    >
+      <el-form :model="addTypeForm" ref="addTypeForm" label-position="right" :rules="addTypeRules">
+        <el-form-item label="类型名" label-width="20%" prop="name">
+          <el-input v-model="addTypeForm.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="上级类别" label-width="20%" prop="parentId">
+          <el-cascader
+            @change="handleTypeChange"
+            v-model="addTypeForm.parentId"
+            :props="typeListProps"
+            :options="typeDatas"
+            :show-all-levels="false"
+          ></el-cascader>
+        </el-form-item>
+        <el-form-item label="显示顺序" label-width="20%" prop="sort">
+          <el-input v-model="addTypeForm.sort" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="addTypeDialog = false">取 消</el-button>
+        <el-button type="primary" @click="addType">确 定</el-button>
+      </div>
+    </el-dialog>
   </el-card>
 </template>
 
@@ -30,11 +62,23 @@
 export default {
   data() {
     return {
-      // addFormDialog : false,
-      // addForm: {
-      //     name: "",
-      //     password: ""
-      // },
+      typeListProps: {
+        value: "id",
+        label: "name",
+        children: "children",
+        checkStrictly: true
+      },
+      addTypeDialog : false,
+      addTypeDialogTitle : "",
+      addTypeForm: {
+          name: "",
+          sort: 0,
+          parentId:0,
+          creator:""
+      },
+      addTypeRules: {
+        name: [{ required: true, message: "类型名不能为空" }]
+      },
       typeDatas: []
     };
   },
@@ -46,7 +90,6 @@ export default {
       this.$axios
         .get("/bill/type")
         .then(response => {
-          window.console.log(response)
           if(response.data.success){
             this.typeDatas = response.data.data
           }
@@ -55,65 +98,28 @@ export default {
           this.$message.error("响应失败");
         });
     },
-    openAddDialog(id) {
-      this.$prompt("请输入类型名称", "新增类型", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputPattern: /\S/,
-        inputErrorMessage: "类型名称不能空"
-      }).then(({ value }) => {
-        let addData = {
-            name:value,
-            parentId:id,
-            creator:this.$store.state.userName
+    addType(){
+        this.$refs.addTypeForm.validate(valid => {
+          if (valid) {
+            this.addTypeForm.creator = this.$store.state.userName
+            this.$axios
+              .post("/bill/type", this.addTypeForm)
+              .then(response => {
+                if (response.data.success) {
+                  this.getAllType();
+                  this.$message.success(response.data.message);
+                  this.addTypeDialog = false;
+                } else {
+                  this.$message.error("新增失败");
+                }
+              })
+              .catch(() => {
+                this.$message.error("响应失败");
+              });
+        } else {
+          return;
         }
-        this.$axios
-          .post("/bill/type", addData)
-          .then(response => {
-            if (response.data.success) {
-              this.getAllType();
-              this.$message.success(response.data.message);
-            } else {
-              this.$message.error("新增失败");
-            }
-          })
-          .catch(() => {
-            this.$message.error("响应失败");
-          });
       });
-    },
-    editType(type){
-      this.$prompt("请输入修改后的类型名称", "修改类型", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        inputValue:type.name,
-        inputValidator:(str)=>{
-          if(str){
-            if(str === type.name){
-              return "类型名称没有修改"
-            }else{
-              return true
-            }
-          }else{
-            return "类型名称不能空"
-          }
-        }
-      }).then(({ value }) => {
-        type.name = value
-        this.$axios
-          .put("/bill/type", type)
-          .then(response => {
-            if (response.data.success) {
-              this.getAllType();
-              this.$message.success(response.data.message);
-            } else {
-              this.$message.error("修改失败");
-            }
-          })
-          .catch(() => {
-            this.$message.error("响应失败");
-          });
-      })
     },
     deleteType(type){
       var ids = new Array()
@@ -141,7 +147,34 @@ export default {
           this.deleteChild(arr,child.children)
         }
       }
-    }
+    },
+    openAddDialog(id,type) {
+      if(type){
+        this.addTypeDialogTitle = "修改类型"
+        this.addTypeForm = {
+            name: type.name,
+            sort: type.sort,
+            parentId:type.parentId,
+            creator: "",
+            id: type.id
+        }
+      }else{
+        this.addTypeDialogTitle = "新增类型"
+        this.addTypeForm = {
+          name: "",
+          sort: 0,
+          parentId:id,
+          creator: "",
+        }
+      }
+      this.addTypeDialog = true
+    },
+    closeAddTypeFormDialog(){
+      this.$refs.addTypeForm.resetFields();
+    },
+    handleTypeChange(typeArr){
+      this.addTypeForm.parentId = typeArr[typeArr.length - 1];
+    },
   }
 };
 </script>

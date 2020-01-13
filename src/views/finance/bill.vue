@@ -174,7 +174,7 @@ export default {
         income: "false",
         typeId: "",
         spend: "",
-        spendDate: new Date(),
+        spendDate: "",
         content: "",
         personId: ""
       },
@@ -283,6 +283,15 @@ export default {
             this.$message.error(response.data.message);
           }
         })
+      }else{
+        this.addBillForm = {
+          income: "false",
+          typeId: "",
+          spend: "",
+          spendDate: this.getNowTime(),
+          content: "",
+          personId: ""
+        }
       }
       this.addBillDialog = true
     },
@@ -292,6 +301,16 @@ export default {
     filterTag(value, row) {
       return row.income.toString() === value;
     },
+    getNowTime() {
+       var now = new Date();
+       var year = now.getFullYear(); //得到年份
+       var month = now.getMonth(); //得到月份
+       var date = now.getDate(); //得到日期
+       month = month + 1;
+       month = month.toString().padStart(2, "0");
+       date = date.toString().padStart(2, "0");
+       return `${year}-${month}-${date}`;
+   },
   }
 };
 </script>

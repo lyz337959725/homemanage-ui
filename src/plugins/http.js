@@ -4,6 +4,7 @@ const MyHttp = {}
 
 MyHttp.install = (Vue) => {
     Axios.defaults.baseURL = "http://localhost:8085"
+    // Axios.defaults.baseURL = "http://39.106.53.194:8085"
 
     // 添加请求拦截器
     Axios.interceptors.request.use(function (config) {
