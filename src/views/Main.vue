@@ -1,30 +1,37 @@
 <template>
   <el-container style="height:100%">
     <!-- <el-aside > -->
-      <el-menu
-        class="el-menu-vertical-demo"
-        router
-        @open="handleOpen"
-        @close="handleClose"
-        :collapse="isCollapse"
-      >
-      
+    <el-menu
+      class="el-menu-vertical-demo"
+      router
+      @open="handleOpen"
+      @close="handleClose"
+      :collapse="isCollapse"
+      :unique-opened="isOpened"
+    >
       <div :class="titleClass" v-text="titleContent"></div>
-        <el-menu-item index="/user">
-          <i class="el-icon-s-custom"></i>
-          <span slot="title">用户管理</span>
-        </el-menu-item>
-        <el-submenu index="/finance">
-          <template slot="title">
-            <i class="el-icon-s-order"></i>
-            <span>财务管理</span>
-          </template>
-          <el-menu-item index="/finance/bill">流水管理</el-menu-item>
-          <el-menu-item index="/finance/book">账簿管理</el-menu-item>
-          <el-menu-item index="/finance/type">类别管理</el-menu-item>
-          <el-menu-item index="/finance/person">所属人管理</el-menu-item>
-        </el-submenu>
-      </el-menu>
+      <el-menu-item index="/user">
+        <i class="el-icon-s-custom"></i>
+        <span slot="title">用户管理</span>
+      </el-menu-item>
+      <el-submenu index="/finance">
+        <template slot="title">
+          <i class="el-icon-s-order"></i>
+          <span>财务管理</span>
+        </template>
+        <el-menu-item index="/finance/bill">流水管理</el-menu-item>
+        <el-menu-item index="/finance/book">账簿管理</el-menu-item>
+        <el-menu-item index="/finance/type">类别管理</el-menu-item>
+        <el-menu-item index="/finance/person">所属人管理</el-menu-item>
+      </el-submenu>
+      <el-submenu index="/statistics">
+        <template slot="title">
+          <i class="el-icon-s-data"></i>
+          <span>统计管理</span>
+        </template>
+        <el-menu-item index="/statistics/finance">财务统计</el-menu-item>
+      </el-submenu>
+    </el-menu>
     <!-- </el-aside> -->
     <el-container>
       <!-- 头部 -->
@@ -59,10 +66,11 @@
 export default {
   data() {
     return {
-      titleClass:"titleOpen",
-      titleContent:"HomeManager",
-      tipClass:"el-icon-s-fold tip",
-      isCollapse:false
+      titleClass: "titleOpen",
+      titleContent: "HomeManager",
+      tipClass: "el-icon-s-fold tip",
+      isCollapse: false,
+      isOpened: true
     };
   },
   beforeCreate() {
@@ -95,11 +103,16 @@ export default {
     handleClose(key, keyPath) {
       window.console.log(key, keyPath);
     },
-    controlMenu(){
-      this.isCollapse = !this.isCollapse
-      this.titleClass = this.titleClass == "titleOpen" ? "titleClose" : "titleOpen"
-      this.tipClass = this.tipClass == "el-icon-s-fold tip" ? "el-icon-s-unfold tip" : "el-icon-s-fold tip"
-      this.titleContent = this.titleContent == "HomeManager" ? "HM" : "HomeManager"
+    controlMenu() {
+      this.isCollapse = !this.isCollapse;
+      this.titleClass =
+        this.titleClass == "titleOpen" ? "titleClose" : "titleOpen";
+      this.tipClass =
+        this.tipClass == "el-icon-s-fold tip"
+          ? "el-icon-s-unfold tip"
+          : "el-icon-s-fold tip";
+      this.titleContent =
+        this.titleContent == "HomeManager" ? "HM" : "HomeManager";
     }
   }
 };
@@ -137,8 +150,7 @@ export default {
 
 .el-menu {
   height: calc(100vh - 100px);
-  
-  
+
   .titleOpen {
     width: 200px;
     height: 100px;
@@ -157,11 +169,9 @@ export default {
     color: #fff;
     font-size: 20px;
   }
-
 }
 
 .el-main {
   background-color: #eee;
-
 }
 </style>

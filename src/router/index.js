@@ -54,6 +54,14 @@ const routes = [
         },
         component: () => import('@/views/finance/person.vue')
       },
+      {
+        path: '/statistics/finance',
+        name: 'financeStatistics',
+        meta: {
+          title: ['统计管理','财务统计']
+        },
+        component: () => import('@/views/statistics/finance.vue')
+      },
     ]
   }
 ]

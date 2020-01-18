@@ -1,9 +1,15 @@
 
 <template>
   <el-card>
+    <el-radio-group v-model="type" @change="handleRadioTypeChange" fill="#03a9f4" size="small"	>
+      <el-radio-button :label="0">支出</el-radio-button>
+      <el-radio-button :label="1">收入</el-radio-button>
+    </el-radio-group>
+    <el-button style="margin-left:50px" size="small"  type="success" @click="openAddDialog(-1)">新增</el-button>
     <el-table
       :data="typeDatas"
-      style="width: 100%;margin-bottom: 20px;height:calc(100vh - 110px);;overflow: auto; "
+      height="calc(100vh - 110px)"
+      style="width: 100%;margin-bottom: 20px;overflow: auto; "
       row-key="id"
       default-expand-all
       :tree-props="{children: 'children'}"
@@ -16,16 +22,29 @@
       <el-table-column label="操作">
         <template slot-scope="type">
           <el-button-group>
-            <el-button type="success" size="small" icon="el-icon-plus" @click="openAddDialog(type.row.id)"></el-button>
-            <el-button type="warning" size="small" icon="el-icon-edit"  @click="openAddDialog(type.row.id,type.row)"></el-button>
-            <el-button type="danger" size="small" icon="el-icon-delete" @click="deleteType(type.row)"></el-button>
+            <el-button
+              type="success"
+              size="small"
+              icon="el-icon-plus"
+              @click="openAddDialog(type.row.id)"
+            ></el-button>
+            <el-button
+              type="warning"
+              size="small"
+              icon="el-icon-edit"
+              @click="openAddDialog(type.row.id,type.row)"
+            ></el-button>
+            <el-button
+              type="danger"
+              size="small"
+              icon="el-icon-delete"
+              @click="deleteType(type.row)"
+            ></el-button>
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
-    <el-button class="addType" type="success" icon="el-icon-plus" circle @click="openAddDialog(-1)"></el-button>
-    
-    
+
     <!-- 增加类型弹框 -->
     <el-dialog
       :title="addTypeDialogTitle"
@@ -34,6 +53,12 @@
       @close="closeAddTypeFormDialog"
     >
       <el-form :model="addTypeForm" ref="addTypeForm" label-position="right" :rules="addTypeRules">
+        <el-form-item label="类型所属" label-width="20%" >
+          <el-radio-group v-model="addTypeForm.type" size="small"	>
+            <el-radio-button :label="0">支出</el-radio-button>
+            <el-radio-button :label="1">收入</el-radio-button>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item label="类型名" label-width="20%" prop="name">
           <el-input v-model="addTypeForm.name" autocomplete="off"></el-input>
         </el-form-item>
@@ -62,19 +87,21 @@
 export default {
   data() {
     return {
+      type:0,
       typeListProps: {
         value: "id",
         label: "name",
         children: "children",
         checkStrictly: true
       },
-      addTypeDialog : false,
-      addTypeDialogTitle : "",
+      addTypeDialog: false,
+      addTypeDialogTitle: "",
       addTypeForm: {
-          name: "",
-          sort: 0,
-          parentId:0,
-          creator:""
+        name: "",
+        sort: 0,
+        parentId: 0,
+        creator: "",
+        type:0,
       },
       addTypeRules: {
         name: [{ required: true, message: "类型名不能为空" }]
@@ -82,99 +109,104 @@ export default {
       typeDatas: []
     };
   },
-  created(){
-    this.getAllType()
+  created() {
+    this.getAllType();
   },
   methods: {
-    getAllType(){
+    getAllType() {
       this.$axios
-        .get("/bill/type")
+        .get(`/bill/type/${this.type}`)
         .then(response => {
-          if(response.data.success){
-            this.typeDatas = response.data.data
+          if (response.data.success) {
+            this.typeDatas = response.data.data;
           }
         })
         .catch(() => {
           this.$message.error("响应失败");
         });
     },
-    addType(){
-        this.$refs.addTypeForm.validate(valid => {
-          if (valid) {
-            this.addTypeForm.creator = this.$store.state.userName
-            this.$axios
-              .post("/bill/type", this.addTypeForm)
-              .then(response => {
-                if (response.data.success) {
-                  this.getAllType();
-                  this.$message.success(response.data.message);
-                  this.addTypeDialog = false;
-                } else {
-                  this.$message.error("新增失败");
-                }
-              })
-              .catch(() => {
-                this.$message.error("响应失败");
-              });
+    addType() {
+      this.$refs.addTypeForm.validate(valid => {
+        if (valid) {
+          this.addTypeForm.creator = this.$store.state.userName;
+          this.$axios
+            .post("/bill/type", this.addTypeForm)
+            .then(response => {
+              if (response.data.success) {
+                this.getAllType();
+                this.$message.success(response.data.message);
+                this.addTypeDialog = false;
+              } else {
+                this.$message.error("新增失败");
+              }
+            })
+            .catch(() => {
+              this.$message.error("响应失败");
+            });
         } else {
           return;
         }
       });
     },
-    deleteType(type){
-      var ids = new Array()
-      ids.push(type.id)
-      this.deleteChild(ids,type.children)
-      this.$confirm('确定要删除该类型及其子类型吗, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.$axios.delete(`/bill/type/${ids.join("-")}`).then(response => {
-            if(response.data.success){
-              this.getAllType();
-              this.$message.success(response.data.message);
-            }else{
-              this.$message.error("删除失败");
-            }
-          })
-        })
+    deleteType(type) {
+      var ids = new Array();
+      ids.push(type.id);
+      this.deleteChild(ids, type.children);
+      this.$confirm("确定要删除该类型及其子类型吗, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(() => {
+        this.$axios.delete(`/bill/type/${ids.join("-")}`).then(response => {
+          if (response.data.success) {
+            this.getAllType();
+            this.$message.success(response.data.message);
+          } else {
+            this.$message.error("删除失败");
+          }
+        });
+      });
     },
-    deleteChild(arr,children){
-      if(children){
-        for(let child of children){
-          arr.push(child.id)
-          this.deleteChild(arr,child.children)
+    deleteChild(arr, children) {
+      if (children) {
+        for (let child of children) {
+          arr.push(child.id);
+          this.deleteChild(arr, child.children);
         }
       }
     },
-    openAddDialog(id,type) {
-      if(type){
-        this.addTypeDialogTitle = "修改类型"
+    openAddDialog(id, type) {
+      if (type) {
+        this.addTypeDialogTitle = "修改类型";
         this.addTypeForm = {
-            name: type.name,
-            sort: type.sort,
-            parentId:type.parentId,
-            creator: "",
-            id: type.id
-        }
-      }else{
-        this.addTypeDialogTitle = "新增类型"
+          name: type.name,
+          sort: type.sort,
+          parentId: type.parentId,
+          creator: "",
+          id: type.id,
+          type:this.type
+        };
+      } else {
+        this.addTypeDialogTitle = "新增类型";
         this.addTypeForm = {
           name: "",
           sort: 0,
-          parentId:id,
+          parentId: id,
           creator: "",
-        }
+          type:this.type
+        };
       }
-      this.addTypeDialog = true
+      this.addTypeDialog = true;
     },
-    closeAddTypeFormDialog(){
+    closeAddTypeFormDialog() {
       this.$refs.addTypeForm.resetFields();
     },
-    handleTypeChange(typeArr){
+    handleTypeChange(typeArr) {
       this.addTypeForm.parentId = typeArr[typeArr.length - 1];
     },
+    handleRadioTypeChange(){
+      this.getAllType()
+    }
   }
 };
 </script>
@@ -183,10 +215,5 @@ export default {
 .el-card {
   position: relative;
   height: calc(100vh - 105px);
-  .addType {
-    position: absolute;
-    right: 20px;
-    bottom: 20px;
-  }
 }
 </style>
